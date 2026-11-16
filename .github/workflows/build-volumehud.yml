@@ -33,12 +33,13 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
 
       - name: Install Android SDK packages
-        run: sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
 
       - name: Build debug APK
-        working-directory: .
         run: gradle --no-daemon --stacktrace clean :app:assembleDebug
 
       - name: Verify APK, Xposed metadata, and checksum
@@ -46,8 +47,9 @@ jobs:
         run: |
           set -euo pipefail
           APK="app/build/outputs/apk/debug/app-debug.apk"
+          BT="$ANDROID_HOME/build-tools/35.0.0"
           test -s "$APK"
-          apksigner verify --verbose "$APK"
+          "$BT/apksigner" verify --verbose "$APK"
           unzip -p "$APK" assets/xposed_init > /tmp/xposed_init.txt
           grep -Fx 'id.volumehud.ios27.VolumeHudEntry' /tmp/xposed_init.txt
           grep -Fx 'id.volumehud.ios27.SystemServerKeyHook' /tmp/xposed_init.txt
@@ -55,7 +57,7 @@ jobs:
             echo "ERROR: Xposed API classes must not be packaged (compileOnly expected)."
             exit 1
           fi
-          aapt dump xmltree "$APK" AndroidManifest.xml > /tmp/manifest.txt
+          "$BT/aapt" dump xmltree "$APK" AndroidManifest.xml > /tmp/manifest.txt
           grep -q 'xposedmodule' /tmp/manifest.txt
           grep -q 'xposedminversion' /tmp/manifest.txt
           sha256sum "$APK" | tee SHA256SUMS.txt

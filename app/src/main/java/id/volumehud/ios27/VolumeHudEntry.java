@@ -156,8 +156,7 @@ public final class VolumeHudEntry implements IXposedHookLoadPackage {
                 keyReceiverRegistered = true;
                 Log.i(TAG, "RECEIVER_REGISTERED action="
                         + SystemServerKeyHook.ACTION_PHYSICAL_VOLUME_KEY
-                        + " exported=false sender=system_uid_only receiverUser=" + context.getUserId()
-                        + " context=" + context.getClass().getName());
+                        + " exported=false sender=system_uid_only context=" + context.getClass().getName());
             } catch (Throwable t) {
                 Log.e(TAG, "secure key receiver registration failed; native volume dialog remains fallback", t);
             }

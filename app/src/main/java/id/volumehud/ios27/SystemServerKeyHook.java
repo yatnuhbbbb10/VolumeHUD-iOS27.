@@ -120,6 +120,19 @@ public final class SystemServerKeyHook implements IXposedHookLoadPackage {
         return true;
     }
 
+
+    /** Resolve Android's hidden CURRENT user sentinel without a compile-time hidden API dependency. */
+    private static UserHandle targetUserHandle() {
+        try {
+            java.lang.reflect.Field f = UserHandle.class.getDeclaredField("CURRENT");
+            f.setAccessible(true);
+            return (UserHandle) f.get(null);
+        } catch (Throwable ignored) {
+            // system_server normally runs as the foreground system user on this target.
+            return UserHandle.of(0);
+        }
+    }
+
     private static void relay(Context systemContext, int keyCode, long downTime, long eventTime, int deviceId) {
         final int slot = keyCode == KeyEvent.KEYCODE_VOLUME_UP ? 0 : 1;
         synchronized (lastDownTime) {
@@ -140,11 +153,11 @@ public final class SystemServerKeyHook implements IXposedHookLoadPackage {
         long seq = sequence.incrementAndGet();
         intent.putExtra(EXTRA_SEQUENCE, seq);
         try {
-            systemContext.sendBroadcastAsUser(intent, UserHandle.CURRENT);
+            systemContext.sendBroadcastAsUser(intent, targetUserHandle());
             Log.i(TAG, "RELAY_SENT seq=" + seq + " keyCode=" + keyCode
                     + " downTime=" + downTime + " eventTime=" + eventTime
                     + " deviceId=" + deviceId + " target=com.android.systemui user=CURRENT"
-                    + " senderContextUser=" + systemContext.getUserId());
+                    + " senderContextUser=system-user");
         } catch (Throwable t) {
             Log.e(TAG, "RELAY_FAILED seq=" + seq + " keyCode=" + keyCode
                     + " deviceId=" + deviceId + "; native key handling remains untouched", t);

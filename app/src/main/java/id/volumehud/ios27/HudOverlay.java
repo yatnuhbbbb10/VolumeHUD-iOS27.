@@ -7,7 +7,6 @@ import android.os.Looper;
 import android.view.*;
 import android.widget.FrameLayout;
 import android.util.Log;
-import de.robv.android.xposed.AndroidAppHelper;
 import de.robv.android.xposed.XposedHelpers;
 
 final class HudOverlay {
@@ -22,15 +21,15 @@ final class HudOverlay {
     private boolean muted;
     private final Runnable hide = () -> remove();
 
-    HudOverlay(ClassLoader ignored, Object owner) throws Exception {
+    HudOverlay(ClassLoader classLoader, Object owner) throws Exception {
         controller = owner;
         Context systemUiContext = null;
         try {
             Object candidate = XposedHelpers.getObjectField(owner, "mContext");
             if (candidate instanceof Context) systemUiContext = (Context) candidate;
-        } catch (Throwable ignored) { }
-        context = systemUiContext != null ? systemUiContext : AndroidAppHelper.currentApplication();
-        if (context == null) throw new IllegalStateException("SystemUI context unavailable");
+        } catch (Throwable ignoredField) { }
+        context = systemUiContext;
+        if (context == null) throw new IllegalStateException("Transsion controller mContext unavailable");
         wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         if (wm == null) throw new IllegalStateException("SystemUI WindowManager unavailable");
         view = new GlassCapsule(context, this);

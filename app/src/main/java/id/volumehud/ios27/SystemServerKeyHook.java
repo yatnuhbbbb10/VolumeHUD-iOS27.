@@ -129,7 +129,7 @@ public final class SystemServerKeyHook implements IXposedHookLoadPackage {
             return (UserHandle) f.get(null);
         } catch (Throwable ignored) {
             // system_server normally runs as the foreground system user on this target.
-            return UserHandle.of(0);
+            return UserHandle.getUserHandleForUid(0);
         }
     }
 
